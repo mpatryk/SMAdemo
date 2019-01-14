@@ -1,0 +1,9 @@
+<apex:page standardController="Environment__c" >
+    <apex:form >
+        <apex:pageBlock title="Main Section">
+            <apex:pageBlockSection title="Edit Section">
+                <apex:inputField value="{!Environment__c.EMUser__c}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

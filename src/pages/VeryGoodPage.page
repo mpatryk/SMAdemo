@@ -1,0 +1,44 @@
+<apex:page controller="WrapperClassController" showheader="false">
+
+    <apex:form >
+        <apex:pageblock title="Add Environments" id="assign_env">
+            <apex:selectlist size="1" value="{!actualUserToAddId}" >
+                <apex:selectoptions value="{!nick}"/>
+            </apex:selectlist>
+            <apex:selectlist size="1" value="{!actualEnvId}">
+                <apex:selectoptions value="{!envNames}"/>
+            </apex:selectlist>
+            <apex:commandbutton value="Assign" action="{!assign}" rerender="assign_env" />
+        </apex:pageblock>
+    </apex:form>
+
+    <apex:form >
+        <apex:pageBlock id="environment" >
+            <apex:selectlist value="{!actualTableUserNick}" size="1">
+                <apex:selectoptions value="{!nick}"/>
+                <apex:actionsupport event="onchange" action="{!setWasUserChanged}" rerender="environment"/>
+            </apex:selectlist>
+            <apex:commandbutton value="Refresh" rerender="environment" />
+
+            <apex:pageBlockTable value="{!environments}" var="e" id="table">
+                <apex:column value="{!e.env.Name}" />
+                <apex:column headervalue="Type" >
+                    <apex:selectlist value="{!e.env.Type__c}" size="1" disabled="{!if(e.env.IsEnabled__c,false,true)}">
+                        <apex:selectoptions value="{!types}"/>
+                        <apex:actionsupport event="onchange" rerender="environment"/>
+                    </apex:selectlist>
+                </apex:column>
+                <apex:column headervalue="Availability" >
+                    <apex:inputcheckbox value="{!e.env.IsEnabled__c}" >
+                        <apex:actionsupport event="onchange" rerender="environment"/>
+                    </apex:inputcheckbox>
+                </apex:column>
+                <apex:column headervalue="Nick" value="{!e.env.EMUser__r.Nick__c}" />
+                <apex:column headervalue="Actions">
+                    <apex:commandbutton value="Update" action="{!e.updateChanges}"/>
+                    <apex:commandbutton value="Unassign" action="{!e.unassign}" rerender="environment"/>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

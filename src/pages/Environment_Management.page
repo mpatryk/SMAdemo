@@ -1,0 +1,151 @@
+<apex:page docType="html-5.0" showHeader="false" controller="EnvironmentManagementController" id="all">
+
+    <apex:form >
+
+        <apex:pageblock id="all">
+                <apex:outputText value="Are you The Godest God?:"/>
+                <apex:inputcheckbox value="{!isAdmin}">
+                    <apex:actionsupport event="onchange" rerender="all"/>
+                </apex:inputcheckbox>
+
+            <apex:pageBlockSection columns="2" rendered="{!isAdmin}"  title="Create/Delete Environment" id="create_env">
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="Environment's name:"/>
+                    <apex:input value="{!typedEnvName}">
+                        <apex:actionsupport event="onchange" rerender="create_env"/>
+                    </apex:input>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem labeltitle="ENV:">
+                    <apex:outputText value="Environment:" />
+                    <apex:selectlist size="1" value="{!actualEnvIdToDelete}" disabled="{!isEnvsListEmpty}">
+                        <apex:selectoptions value="{!envNames}"/>
+                    </apex:selectlist>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="Type:"/>
+                    <apex:selectlist size="1" value="{!actualType}" >
+                        <apex:selectoptions value="{!types}">
+                        </apex:selectoptions>
+                    </apex:selectlist>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value=""/>
+                    <apex:commandbutton value="{!$Label.Delete_button}" disabled="{!isEnvsListEmpty}" action="{!deleteEnv}" status="loading"  rerender="create_env" >
+                        <apex:actionsupport event="onclick" rerender="all"/>
+                    </apex:commandbutton>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="Status:"/>
+                    <apex:selectlist size="1" value="{!actualStatus}">
+                        <apex:selectoptions value="{!specialStatus}">
+                        </apex:selectoptions>
+                    </apex:selectlist>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value=""/>
+                    <apex:commandbutton value="{!$Label.Create_button}" action="{!createNewEnv}" disabled="{!isTypedEnvNameEmpty}" rerender="all" >
+                        <!--<apex:actionsupport event="onclick" rerender="all"/>-->
+                    </apex:commandbutton>
+                </apex:pageBlockSectionItem>
+
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection columns="1" title="Assign Environment" id="assign_env">
+
+                <apex:pageBlockSectionItem labeltitle="USER:">
+                    <apex:outputText value="User:"/>
+                    <apex:selectlist size="1" value="{!actualUserToAddId}" >
+                        <apex:selectoptions value="{!nick}"/>
+                    </apex:selectlist>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem labeltitle="ENV:">
+                    <apex:outputText value="Environment:" />
+                    <apex:selectlist size="1" value="{!actualEnvId}" disabled="{!isEnvsListEmpty}">
+                        <apex:selectoptions value="{!envNames}"/>
+                    </apex:selectlist>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem labeltitle="ENV:">
+                    <apex:outputText value=""/>
+                    <apex:commandbutton value="{!$Label.Assign_button}" status="loading" disabled="{!isEnvsListEmpty}" action="{!assign}" rerender="all" />
+                </apex:pageBlockSectionItem>
+
+
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection columns="1" id="environment" title="User's Environments">
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="User:"/>
+                    <apex:selectlist value="{!actualTableUserNick}" size="1">
+                        <apex:selectoptions value="{!nick}"/>
+                        <apex:actionsupport event="onchange"  action="{!setWasUserChanged}" rerender="environment"/>
+                    </apex:selectlist>
+                </apex:pageBlockSectionItem>
+
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value=""/>
+                    <apex:commandbutton value="{!$Label.Refresh_button}" action="{!setWasUserChanged}" rerender="table" />
+                </apex:pageBlockSectionItem>
+
+
+                <apex:pageBlockTable value="{!environments}" var="e" id="table">
+                    <apex:column value="{!e.env.Name}" />
+                    <apex:column headervalue="Type" value="{!e.env.Type__c}" rendered="{!!isAdmin}"/>
+                    <apex:column headervalue="Type" rendered="{!isAdmin}">
+                        <apex:selectlist value="{!e.env.Type__c}" size="1">
+                            <apex:selectoptions value="{!types}"/>
+                            <apex:actionsupport event="onchange" rerender="environment"/>
+                        </apex:selectlist>
+                    </apex:column>
+                    <apex:column headervalue="Status" value="{!e.env.Status__c}" rendered="{!!isAdmin}" styleclass="{!if(e.env.Status__c=='Active','active',if(e.env.Status__c=='Inactive','inactive','maintenance'))}"/>
+
+                    <apex:column headervalue="Status" rendered="{!isAdmin}" >
+                        <apex:selectlist value="{!e.env.Status__c}" size="1">
+                            <apex:selectoptions value="{!specialStatus}"/>
+                            <apex:actionsupport event="onchange" rerender="environment"/>
+                        </apex:selectlist>
+                    </apex:column>
+                    <apex:column headervalue="Nick" value="{!e.env.EMUser__r.Nick__c}" />
+                    <apex:column headervalue="Actions">
+                        <apex:commandbutton value="{!$Label.Update_button}" rendered="{!isAdmin}" status="loading" action="{!e.updateChanges}" rerender="environment" />
+                        <apex:commandbutton value="{!$Label.Unassign_button}" status="loading" disabled="{!e.env.Status__c == 'Maintenance'}" action="{!e.unassign}" rerender="all">
+                            <apex:actionsupport event="onclick" action="{!setWasUserChanged}" rerender="all"/>
+                        </apex:commandbutton>
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+        </apex:pageblock>
+    </apex:form>
+
+    <apex:actionStatus id="loading">
+        <apex:facet name="start" >
+            <c:GrayMySite />
+        </apex:facet>
+    </apex:actionStatus>
+
+
+    <style>
+        .maintenance{
+            background-color: yellow;
+        }
+        .inactive{
+            background-color: red;
+        }
+        .active{
+            background-color: green;
+        }
+    </style>
+
+</apex:page>
